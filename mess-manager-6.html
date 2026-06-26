@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মেস ম্যানেজার — ক্লাউড সিঙ্কড ড্যাশবোর্ড</title>
+    
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #eff6ff; }
+        .premium-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(219, 234, 254, 0.7);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.03), 0 8px 10px -6px rgba(59, 130, 246, 0.03);
+        }
+        .overflow-x-auto::-webkit-scrollbar { height: 5px; }
+        .overflow-x-auto::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        
+        @media print {
+            body { background-color: #ffffff; padding-bottom: 0 !important; color: #000000 !important; }
+            header, nav, #sidebar-overlay, #sidebar-menu, .fixed, button, .no-print, .global-summary-panel {
+                display: none !important;
+            }
+            #page-final-sheet { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .premium-card { border: none !important; box-shadow: none !important; background: transparent !important; backdrop-filter: none !important; }
+            table { border-collapse: collapse !important; width: 100% !important; margin-top: 15px !important; }
+            th, td { border: 1px solid #000000 !important; color: #000000 !important; padding: 6px 8px !important; font-size: 12px !important; }
+            th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 15px; }
+        }
+    </style>
+</head>
+<body id="app-body" class="text-gray-800 antialiased pb-28">
+
+    <div id="auth-overlay" class="fixed inset-0 z-50 flex flex-col" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 50%, #1e3a5f 100%);">
+        <div id="auth-login-page" class="flex flex-col flex-1 items-center justify-center p-6">
+            <div class="mb-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-3xl flex items-center justify-center shadow-2xl" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);">
+                    <i class="fa-solid fa-bowl-food text-white text-3xl"></i>
+                </div>
+                <h1 class="text-white font-bold text-2xl tracking-wide">MESS MANAGER</h1>
+                <p class="text-blue-200 text-xs mt-1">আপনার মেসের হিসাব সহজে রাখুন</p>
+            </div>
+            <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-slate-800 font-bold text-xl mb-1">Log In to Your Mess</h2>
+                    <p class="text-slate-400 text-xs mb-5">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+                    <div id="login-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-medium"></div>
+                    <div class="space-y-3">
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                            <span class="pl-3 text-slate-400"><i class="fa-regular fa-envelope text-sm"></i></span>
+                            <input type="email" id="login-email" placeholder="Enter Manager Email" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
+                        </div>
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                            <span class="pl-3 text-slate-400"><i class="fa-solid fa-lock text-sm"></i></span>
+                            <input type="password" id="login-password" placeholder="Enter Password" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
+                        </div>
+                        <button id="login-btn" type="button" class="w-full py-3 rounded-xl font-bold text-white text-sm transition-all active:scale-95 shadow-md" style="background: linear-gradient(135deg, #e85d04, #f48c06);">
+                            LOG IN
+                        </button>
+                    </div>
+                    <p class="text-center text-slate-500 text-xs mt-4">Don't have an account?</p>
+                    <button type="button" id="go-to-reg-btn" class="w-full mt-2 py-2.5 rounded-xl font-bold text-white text-sm transition-all active:scale-95" style="background: linear-gradient(135deg, #2d9d57, #27ae60);">
+                        CREATE ACCOUNT
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="auth-register-page" class="hidden flex flex-col flex-1 items-center justify-center p-6">
+            <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div class="p-5 text-white font-bold text-lg text-center" style="background: linear-gradient(135deg, #1e3a5f, #2d6a9f);">
+                    MESS MANAGER
+                </div>
+                <div class="p-6">
+                    <h2 class="text-slate-800 font-bold text-xl mb-1">Set Up Your Mess Account</h2>
+                    <p class="text-slate-400 text-xs mb-4">নতুন অ্যাকাউন্ট তৈরি করুন</p>
+                    <div id="register-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-medium"></div>
+                    <div id="register-success" class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-xs font-medium"></div>
+                    <div class="space-y-3">
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                            <span class="pl-3 text-slate-400"><i class="fa-solid fa-house text-sm"></i></span>
+                            <input type="text" id="reg-mess-name" placeholder="Enter Your Mess Name" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
+                        </div>
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                            <span class="pl-3 text-slate-400"><i class="fa-regular fa-envelope text-sm"></i></span>
+                            <input type="email" id="reg-email" placeholder="Enter Manager Email" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
+                        </div>
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                            <span class="pl-3 text-slate-400"><i class="fa-solid fa-lock text-sm"></i></span>
+                            <input type="password" id="reg-password" placeholder="Create Password (min 6 chars)" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
+                        </div>
+                        <button id="register-btn" type="button" class="w-full py-3 rounded-xl font-bold text-white text-sm transition-all active:scale-95 shadow-md" style="background: linear-gradient(135deg, #e85d04, #f48c06);">
+                            CREATE ACCOUNT
+                        </button>
+                    </div>
+                    <button type="button" id="go-to-login-btn" class="w-full mt-4 py-2.5 rounded-xl font-bold text-white text-sm transition-all active:scale-95" style="background: linear-gradient(135deg, #2d9d57, #27ae60);">
+                        BACK TO LOG IN
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md sticky top-0 z-40 border-b border-blue-500/30 no-print">
+        <div class="max-w-4xl mx-auto flex justify-between items-center p-4">
+            <button onclick="toggleSidebar(true)" type="button" class="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all active:scale-95 text-xl">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="text-center flex-1 mx-2">
+                <h1 class="font-bold text-lg md:text-xl tracking-wide flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-layer-group text-yellow-300 drop-shadow"></i> মেস ম্যানেজার
+                </h1>
+                <div class="flex items-center justify-center gap-1.5 mt-0.5 text-xs text-blue-100 bg-white/10 px-2 py-0.5 rounded-md max-w-max mx-auto border border-white/10">
+                    <span id="mess-name-display">এখানে মেসের নাম দিন</span>
+                    <button onclick="editMessName()" type="button" class="text-blue-200 hover:text-white"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                </div>
+            </div>
+            <button onclick="forceRefreshAll()" type="button" class="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all active:scale-95 text-lg mr-1" title="রিফ্রেশ">
+                <i class="fa-solid fa-rotate"></i>
+            </button>
+            <button id="logout-btn" class="px-3 py-1.5 bg-red-600/80 hover:bg-red-700 rounded-xl text-xs font-bold transition-all">লগ আউট</button>
+        </div>
+    </header>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar(false)" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity no-print"></div>
+    <div id="sidebar-menu" class="fixed top-0 bottom-0 left-0 w-64 bg-slate-900 text-slate-300 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out p-5 shadow-2xl flex flex-col justify-between no-print">
+        <div>
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-5">
+                <span class="text-white font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-blue-500"></i> মেনু অপশন
+                </span>
+                <button onclick="toggleSidebar(false)" type="button" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white rounded-full bg-slate-800">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <button onclick="switchPage('page-home')" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
+                    <i class="fa-solid fa-house text-blue-400"></i> ড্যাশবোর্ড হোম
+                </button>
+                <button onclick="switchPage('page-deposit')" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
+                    <i class="fa-solid fa-wallet text-amber-400"></i> জমা খাতা
+                </button>
+                <button onclick="switchPage('page-expense')" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
+                    <i class="fa-solid fa-cart-shopping text-red-400"></i> বাজার খরচ খাতা
+                </button>
+                <button onclick="switchPage('page-meal')" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
+                    <i class="fa-solid fa-utensils text-purple-400"></i> মিল খাতা
+                </button>
+                <button onclick="switchPage('page-calculation')" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
+                    <i class="fa-solid fa-calculator text-indigo-400"></i> ক্যালকুলেশন প্যানেল
+                </button>
+                <button onclick="switchPage('page-final-sheet')" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
+                    <i class="fa-solid fa-table text-emerald-400"></i> ফাইনাল হিসাব শিট
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-4 md:px-6 pt-6 no-print">
+        <div class="premium-card p-4 rounded-2xl flex justify-between items-center">
+            <button onclick="changeMonth(-1)" type="button" class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-blue-50 active:scale-90 text-gray-600 rounded-xl border border-gray-100 shadow-sm"><i class="fa-solid fa-chevron-left"></i></button>
+            <h2 id="month-display" class="font-bold text-lg text-gray-700 flex items-center gap-2"><i class="fa-regular fa-calendar-check text-blue-500"></i> জুন ২০২৬</h2>
+            <button onclick="changeMonth(1)" type="button" class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-blue-50 active:scale-90 text-gray-600 rounded-xl border border-gray-100 shadow-sm"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <section id="page-home" class="max-w-4xl mx-auto p-4 md:px-6 space-y-4 block no-print">
+        <div class="premium-card p-5 rounded-2xl flex items-center gap-4 bg-gradient-to-br from-white to-amber-50/20">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">মোট বাজার খরচ</p>
+                <p id="home-bazar-total" class="text-xl font-extrabold text-slate-800">৳ ০</p>
+            </div>
+        </div>
+        <div class="premium-card p-5 rounded-2xl flex items-center gap-4 bg-gradient-to-br from-white to-blue-50/20">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-wallet"></i></div>
+            <div>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">মেসের মোট জমা</p>
+                <p id="home-deposit-total" class="text-xl font-extrabold text-blue-700">৳ ০</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="premium-card p-4 rounded-2xl text-center bg-gradient-to-br from-white to-purple-50/20">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">মোট মিল</p>
+                <p id="home-total-meals" class="text-lg font-extrabold text-purple-700 mt-1">০ টি</p>
+            </div>
+            <div class="premium-card p-4 rounded-2xl text-center bg-gradient-to-br from-white to-indigo-50/20">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">মিল রেট</p>
+                <p id="home-meal-rate" class="text-lg font-extrabold text-indigo-700 mt-1">৳ ০</p>
+            </div>
+        </div>
+
+        <div class="premium-card p-5 rounded-2xl bg-white mt-2">
+            <h3 id="prev-month-heading" class="font-bold text-slate-500 text-sm border-b pb-2 mb-3">এক নজরে বিগত মাস</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">মোট জমা:</span><span id="prev-total-deposit" class="font-bold text-slate-700">৳ ০</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">মোট বাজার খরচ:</span><span id="prev-total-bazar" class="font-bold text-slate-700">৳ ০</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">মোট মিল (বাবুর্চিসহ):</span><span id="prev-total-meals" class="font-bold text-slate-700">০ টি</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">ফাইনাল মিল রেট:</span><span id="prev-meal-rate" class="font-bold text-slate-700">৳ ০</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="page-deposit" class="max-w-4xl mx-auto p-4 md:px-6 hidden no-print">
+        <div class="premium-card rounded-2xl overflow-hidden bg-white">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b">
+                    <tr>
+                        <th class="p-4 w-16 text-center">ক্রমিক</th>
+                        <th class="p-4">সদস্যের নাম</th>
+                        <th class="p-4 text-right">মোট জমা টাকা</th>
+                        <th class="p-4">মন্তব্য</th>
+                        <th class="p-4 text-center">অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="deposit-table-body" class="divide-y divide-slate-100 text-slate-700 font-medium"></tbody>
+            </table>
+            </div>
+        </div>
+        <button onclick="openGlobalModal('deposit')" class="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl z-40"><i class="fa-solid fa-plus"></i></button>
+    </section>
+
+    <section id="page-expense" class="max-w-4xl mx-auto p-4 md:px-6 hidden no-print space-y-4">
+        <div class="premium-card p-4 rounded-2xl text-center bg-gradient-to-br from-white to-amber-50/20">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">মোট বাজার খরচ (এই মাস)</p>
+            <p id="bazar-cat-total" class="text-xl font-extrabold text-amber-700 mt-1">৳ ০</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="premium-card p-4 rounded-2xl text-center bg-gradient-to-br from-white to-blue-50/20">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">মুদিবাজার</p>
+                <p id="bazar-cat-mudi" class="text-lg font-extrabold text-blue-700 mt-1">৳ ০</p>
+            </div>
+            <div class="premium-card p-4 rounded-2xl text-center bg-gradient-to-br from-white to-emerald-50/20">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">কাঁচাবাজার</p>
+                <p id="bazar-cat-kacha" class="text-lg font-extrabold text-emerald-700 mt-1">৳ ০</p>
+            </div>
+        </div>
+        <div class="premium-card rounded-2xl overflow-hidden bg-white">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                    <tr>
+                        <th class="p-4">তারিখ</th>
+                        <th class="p-4">ক্যাটাগরি</th>
+                        <th class="p-4 text-right">টাকা</th>
+                        <th class="p-4">মন্তব্য</th>
+                        <th class="p-4 text-center">অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="bazar-table-body" class="divide-y divide-slate-100 text-slate-700 font-medium"></tbody>
+            </table>
+            </div>
+        </div>
+        <button onclick="openBazarModal()" class="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl z-40"><i class="fa-solid fa-plus"></i></button>
+    </section>
+
+    <section id="page-meal" class="max-w-4xl mx-auto p-4 md:px-6 hidden no-print">
+        <div class="premium-card rounded-2xl overflow-hidden bg-white">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b">
+                    <tr>
+                        <th class="p-4 w-16 text-center">ক্রমিক</th>
+                        <th class="p-4">সদস্যের নাম</th>
+                        <th class="p-4 text-right">মোট মিল সংখ্যা</th>
+                        <th class="p-4">মন্তব্য</th>
+                        <th class="p-4 text-center">অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="meal-table-body" class="divide-y divide-slate-100 text-slate-700 font-medium"></tbody>
+            </table>
+            </div>
+        </div>
+        <button onclick="openGlobalModal('meal')" class="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl z-40"><i class="fa-solid fa-plus"></i></button>
+    </section>
+
+    <section id="page-calculation" class="max-w-4xl mx-auto p-4 md:px-6 hidden no-print">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="premium-card p-5 rounded-2xl space-y-3 bg-white">
+                <h3 class="font-bold text-slate-400 uppercase text-xs border-b pb-2">হিসাবের আউটপুট বিবরণী</h3>
+                <div class="flex justify-between text-sm"><span>মোট জমা:</span><span id="calc-total-deposit" class="font-bold">৳ ০</span></div>
+                <div class="flex justify-between text-sm"><span>মোট বাজার খরচ:</span><span id="calc-total-bazar" class="font-bold">৳ ০</span></div>
+                <div class="flex justify-between text-sm"><span>মোট মিল (বাবুর্চিসহ):</span><span id="calc-cook-total-meals" class="font-bold">০ টি</span></div>
+                <div class="flex justify-between text-sm"><span>গেস্ট মিল সংখ্যা:</span><span id="calc-total-guest-meals" class="font-bold">০ টি</span></div>
+                <div class="flex justify-between text-sm bg-indigo-50 p-2 rounded-lg font-bold text-indigo-700"><span>ফাইনাল মিল রেট:</span><span id="calc-final-meal-rate">৳ ০</span></div>
+                <div class="flex justify-between text-sm bg-emerald-50 p-2 rounded-lg font-bold text-emerald-700"><span>জন প্রতি বাবুর্চি খরচ:</span><span id="calc-per-member-cook">৳ ০</span></div>
+            </div>
+            <div class="premium-card p-5 rounded-2xl space-y-3 bg-white">
+                <h3 class="font-bold text-slate-400 uppercase text-xs border-b pb-2">সেটিংস প্যারামিটার</h3>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">গেস্ট মিল ক্রাইটেরিয়া লিমিট (টি মিল বা কম):</label>
+                    <input type="number" id="input-guest-limit" value="25" oninput="runMasterCalculation()" class="w-full p-2 border rounded-xl text-sm outline-none bg-slate-50" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">গেস্ট মিল রেট (টাকা প্রতি মিল):</label>
+                    <input type="number" id="input-guest-rate" value="150" oninput="runMasterCalculation()" class="w-full p-2 border rounded-xl text-sm outline-none bg-slate-50" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">বাবুর্চি মিল সংখ্যাঃ</label>
+                    <input type="number" id="input-cook-meals" value="0" oninput="runMasterCalculation()" class="w-full p-2 border rounded-xl text-sm outline-none bg-slate-50" />
+                </div>
+                <button onclick="saveCalcSettings()" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-sm">সেটিংস সেভ করুন</button>
+            </div>
+        </div>
+        <button onclick="switchPage('page-final-sheet')" class="w-full mt-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-md flex items-center justify-center gap-2">
+            <i class="fa-solid fa-table"></i> ফাইনাল হিসাব শিট
+        </button>
+    </section>
+
+    <section id="page-final-sheet" class="max-w-4xl mx-auto p-4 md:px-6 hidden">
+        <div class="print-header hidden">
+            <h2 class="font-bold text-xl" id="print-mess-title"></h2>
+            <h3 class="text-sm font-medium" id="print-month-title"></h3>
+        </div>
+        <div class="flex justify-between items-center mb-4 no-print">
+            <h2 class="font-bold text-gray-700">ফাইনাল মেস হিসাব বিবরণী</h2>
+            <div class="flex gap-2">
+                <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold">Excel ডাউনলোড</button>
+                <button onclick="window.print()" class="bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold">PDF / প্রিন্ট</button>
+            </div>
+        </div>
+        <div class="premium-card rounded-2xl overflow-hidden bg-white">
+            <div class="overflow-x-auto">
+            <table id="final-sheet-table" class="w-full text-xs text-left border-collapse">
+                <thead class="bg-slate-50 font-bold border-b">
+                    <tr>
+                        <th class="p-3 text-center w-12">ক্রমিক নং</th>
+                        <th class="p-3">নাম</th>
+                        <th class="p-3 text-right">জমা</th>
+                        <th class="p-3 text-right">মিল সংখ্যা</th>
+                        <th class="p-3 text-right">মিল রেট</th>
+                        <th class="p-3 text-right">বাবুর্চি খরচ</th>
+                        <th class="p-3 text-right">সর্বমোট খরচ</th>
+                        <th class="p-3 text-right text-rose-600">মেস পাবে (বকেয়া)</th>
+                        <th class="p-3 text-right text-emerald-600">মেস দিবে (ফেরত)</th>
+                    </tr>
+                </thead>
+                <tbody id="final-sheet-table-body" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+            </div>
+            <div id="final-sheet-summary" class="px-3 pb-4 pt-6 text-sm text-slate-800 leading-relaxed"></div>
+        </div>
+    </section>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 flex justify-around shadow-lg z-40 no-print">
+        <button onclick="switchPage('page-home')" class="flex flex-col items-center text-gray-500 text-xs font-semibold"><i class="fa-solid fa-house text-lg"></i>হোম</button>
+        <button onclick="switchPage('page-deposit')" class="flex flex-col items-center text-gray-500 text-xs font-semibold"><i class="fa-solid fa-wallet text-lg"></i>জমা</button>
+        <button onclick="switchPage('page-expense')" class="flex flex-col items-center text-gray-500 text-xs font-semibold"><i class="fa-solid fa-cart-shopping text-lg"></i>বাজার</button>
+        <button onclick="switchPage('page-meal')" class="flex flex-col items-center text-gray-500 text-xs font-semibold"><i class="fa-solid fa-utensils text-lg"></i>মিল</button>
+    </nav>
+
+    <div id="global-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center" id="modal-header-bg">
+                <h3 id="modal-title" class="font-bold">এন্ট্রি যোগ করুন</h3>
+                <button onclick="closeGlobalModal()" class="text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="global-form" class="p-4 space-y-3">
+                <input type="hidden" id="form-mode" />
+                <input type="hidden" id="form-edit-id" />
+                <input type="hidden" id="form-edit-month" />
+                <input type="hidden" id="form-edit-year" />
+                <input type="hidden" id="form-original-name" />
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">তারিখ</label>
+                    <input type="date" id="form-date" required class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">সদস্যের নাম</label>
+                    <input type="text" id="form-name" required placeholder="নাম লিখুন..." class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div>
+                    <label id="form-value-label" class="block text-xs font-bold text-slate-400 mb-1">পরিমাণ</label>
+                    <input type="number" min="0.1" step="any" id="form-amount" required placeholder="0.00" class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div id="form-remarks-wrapper">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">মন্তব্য</label>
+                    <input type="text" id="form-remarks" placeholder="বিবরণ..." class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeGlobalModal()" class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-xl">বাতিল</button>
+                    <button type="submit" class="w-1/2 py-2 bg-blue-600 text-white rounded-xl shadow-sm">সংরক্ষণ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="bazar-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="bg-amber-500 p-4 text-white flex justify-between items-center">
+                <h3 id="bazar-modal-title" class="font-bold">নতুন বাজার খরচ এন্ট্রি</h3>
+                <button onclick="closeBazarModal()" class="text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="bazar-form" class="p-4 space-y-3">
+                <input type="hidden" id="bazar-edit-id" />
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">তারিখ</label>
+                    <input type="date" id="bazar-form-date" required class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">ক্যাটাগরি</label>
+                    <select id="bazar-category" class="w-full p-2 border rounded-xl text-sm bg-slate-50">
+                        <option value="মুদিবাজার">মুদিবাজার</option>
+                        <option value="কাঁচাবাজার">কাঁচাবাজার</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">টাকার পরিমাণ</label>
+                    <input type="number" min="0.1" step="any" id="bazar-amount" required placeholder="0.00" class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">মন্তব্য</label>
+                    <input type="text" id="bazar-remarks" placeholder="বাজারের বিবরণ..." class="w-full p-2 border rounded-xl text-sm bg-slate-50" />
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeBazarModal()" class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-xl">বাতিল</button>
+                    <button type="submit" class="w-1/2 py-2 bg-amber-500 text-white rounded-xl shadow-sm">সংরক্ষণ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, push, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // ⚠️ এখানে databaseURL টা তোমার Realtime Database কনসোল থেকে কপি করে বসাও
+        // Firebase Console → Realtime Database পেজের উপরে এই URL টা দেখা যাবে
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1E0lPoSHHMSUVkHp0hTirPVzvL8U1gnY",
+            authDomain: "mess-manager-27342.firebaseapp.com",
+            databaseURL: "https://mess-manager-27342-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mess-manager-27342",
+            storageBucket: "mess-manager-27342.appspot.com",
+            messagingSenderId: "508966159396",
+            appId: "1:508966159396:web:bc89832cabc523b9b304b1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        window._auth = auth; // ডিবাগের জন্য, কনসোল থেকে UID চেক করতে
+
+        // Global arrays synced with Realtime Database
+        window.depositList = [];
+        window.mealList = [];
+        window.bazarList = [];
+        window.rosterList = []; // মিল পেজের পার্সিস্টেন্ট মেম্বার তালিকা (প্রতি মাসে নাম মনে রাখার জন্য)
+
+        window.currentDate = new Date(2026, 5, 1); // June 2026 default
+        window.currentActivePage = "page-home";
+        window.cachedCalcResults = {};
+
+        const bnMonths = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+
+        // Format Money: dynamic decimals, remove symbol if strict print
+        window.formatMoney = function(amount, prefixSymbol = true, isRoundingNeeded = false, roundType = '') {
+            let value = parseFloat(amount);
+            if (isNaN(value)) value = 0;
+            
+            if (isRoundingNeeded) {
+                if (roundType === 'ceil') value = Math.ceil(value);
+                if (roundType === 'floor') value = Math.floor(value);
+            }
+            
+            let formattedStr = (value % 1 === 0) ? value.toFixed(0) : value.toFixed(2);
+            return prefixSymbol ? '৳ ' + formattedStr : formattedStr;
+        };
+
+        // UI navigation
+        window.switchPage = function(pageId) {
+            window.currentActivePage = pageId;
+            ["page-home", "page-deposit", "page-expense", "page-meal", "page-calculation", "page-final-sheet"].forEach(id => {
+                const sec = document.getElementById(id);
+                if (sec) sec.classList.add('hidden');
+            });
+            const activeSec = document.getElementById(pageId);
+            if (activeSec) activeSec.classList.remove('hidden');
+            window.updateUI();
+            window.toggleSidebar(false); // পেজ পরিবর্তনের সাথে সাথে সাইডবার বন্ধ হবে
+        };
+
+        window.changeMonth = function(direction) {
+            window.currentDate.setMonth(window.currentDate.getMonth() + direction);
+            window.updateUI();
+        };
+
+        window.checkMonthSecurity = function() {
+            return true; // পাসওয়ার্ড সম্পূর্ণ বাতিল
+        };
+
+        window._calcSettingsLoadedFor = null;
+
+        window.saveCalcSettings = function() {
+            const user = auth.currentUser;
+            if (!user) return;
+            const mIdx = window.currentDate.getMonth();
+            const yIdx = window.currentDate.getFullYear();
+            const key = 'calc_settings_' + user.uid + '_' + yIdx + '_' + mIdx;
+            const settings = {
+                guestLimit: document.getElementById('input-guest-limit').value,
+                guestRate: document.getElementById('input-guest-rate').value,
+                cookMeals: document.getElementById('input-cook-meals').value
+            };
+            localStorage.setItem(key, JSON.stringify(settings));
+            alert("সেটিংস সংরক্ষণ করা হয়েছে!");
+        };
+
+        window.loadCalcSettingsIfNeeded = function() {
+            const user = auth.currentUser;
+            if (!user) return;
+            const mIdx = window.currentDate.getMonth();
+            const yIdx = window.currentDate.getFullYear();
+            const monthKey = yIdx + '_' + mIdx;
+            if (window._calcSettingsLoadedFor === monthKey) return;
+            window._calcSettingsLoadedFor = monthKey;
+            const key = 'calc_settings_' + user.uid + '_' + yIdx + '_' + mIdx;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    document.getElementById('input-guest-limit').value = settings.guestLimit;
+                    document.getElementById('input-guest-rate').value = settings.guestRate;
+                    document.getElementById('input-cook-meals').value = settings.cookMeals;
+                } catch(e) {}
+            } else {
+                document.getElementById('input-guest-limit').value = 25;
+                document.getElementById('input-guest-rate').value = 150;
+                document.getElementById('input-cook-meals').value = 0;
+            }
+        };
+
+        // Master Calculations Panel Logic
+        window.runMasterCalculation = function() {
+            var mIdx = window.currentDate.getMonth();
+            var yIdx = window.currentDate.getFullYear();
+
+            var thisMonthDeposits = window.depositList.filter(d => d.month === mIdx && d.year === yIdx);
+            var thisMonthMeals = window.mealList.filter(m => m.month === mIdx && m.year === yIdx);
+            var thisMonthBazar = window.bazarList.filter(b => b.month === mIdx && b.year === yIdx);
+
+            var guestLimit = parseFloat(document.getElementById('input-guest-limit').value) || 25;
+            var guestRate = parseFloat(document.getElementById('input-guest-rate').value) || 150;
+            var cookMeals = parseFloat(document.getElementById('input-cook-meals').value) || 0;
+
+            var totalDeposit = thisMonthDeposits.reduce((acc, item) => acc + item.amount, 0);
+            var totalBazar = thisMonthBazar.reduce((acc, item) => acc + item.amount, 0);
+            var totalMudiBazar = thisMonthBazar.filter(b => b.category === 'মুদিবাজার').reduce((acc, item) => acc + item.amount, 0);
+            var totalKachaBazar = thisMonthBazar.filter(b => b.category === 'কাঁচাবাজার').reduce((acc, item) => acc + item.amount, 0);
+
+            var membersMap = {};
+            thisMonthDeposits.forEach(d => {
+                if (!membersMap[d.name]) membersMap[d.name] = { name: d.name, deposit: 0, meals: 0, isGuest: false, depositEntryId: null, depositRemarks: '', depositTimestamp: 0, depositDate: '', mealEntryId: null, mealRemarks: '', mealTimestamp: 0, mealDate: '' };
+                membersMap[d.name].deposit += d.amount;
+                if (d.timestamp >= membersMap[d.name].depositTimestamp) {
+                    membersMap[d.name].depositEntryId = d.id;
+                    membersMap[d.name].depositRemarks = d.remarks || '';
+                    membersMap[d.name].depositTimestamp = d.timestamp;
+                    membersMap[d.name].depositDate = d.date;
+                }
+            });
+            thisMonthMeals.forEach(m => {
+                if (!membersMap[m.name]) membersMap[m.name] = { name: m.name, deposit: 0, meals: 0, isGuest: false, depositEntryId: null, depositRemarks: '', depositTimestamp: 0, depositDate: '', mealEntryId: null, mealRemarks: '', mealTimestamp: 0, mealDate: '' };
+                membersMap[m.name].meals += m.amount;
+                if (m.timestamp >= membersMap[m.name].mealTimestamp) {
+                    membersMap[m.name].mealEntryId = m.id;
+                    membersMap[m.name].mealRemarks = m.remarks || '';
+                    membersMap[m.name].mealTimestamp = m.timestamp;
+                    membersMap[m.name].mealDate = m.date;
+                }
+            });
+
+            var totalRegularMeals = 0;
+            var totalGuestMeals = 0;
+            var totalGuestExpense = 0;
+            var totalRegularCount = 0;
+
+            Object.values(membersMap).forEach(m => {
+                if (m.meals <= guestLimit) {
+                    m.isGuest = true;
+                    totalGuestMeals += m.meals;
+                    totalGuestExpense += (m.meals * guestRate);
+                } else {
+                    m.isGuest = false;
+                    totalRegularMeals += m.meals;
+                    totalRegularCount++;
+                }
+            });
+
+            var netBazarForCalculation = totalBazar - totalGuestExpense;
+            // বাগ ফিক্স ফর্মুলা: নেট বাজার ÷ (রেগুলার মিল + বাবুর্চি মিল)
+            var finalMealRate = (totalRegularMeals + cookMeals) > 0 ? (netBazarForCalculation / (totalRegularMeals + cookMeals)) : 0;
+            
+            var totalCookExpense = cookMeals * finalMealRate; // বাবুর্চির মিল খরচ, ফাইনাল মিল রেট অনুযায়ী
+            var perMemberCookExpense = totalRegularCount > 0 ? (totalCookExpense / totalRegularCount) : 0;
+
+            window.cachedCalcResults = {
+                totalDeposit, totalBazar, cookTotalMeals: totalRegularMeals + totalGuestMeals + cookMeals,
+                netRegularMeals: totalRegularMeals, totalGuestMeals, totalGuestExpense, finalMealRate,
+                totalCookExpense, perMemberCook: perMemberCookExpense, membersMap
+            };
+
+            // Update Input/Output fields on screen
+            document.getElementById('home-bazar-total').innerText = window.formatMoney(totalBazar);
+            document.getElementById('home-deposit-total').innerText = window.formatMoney(totalDeposit);
+            document.getElementById('home-total-meals').innerText = (totalRegularMeals + totalGuestMeals + cookMeals) + ' টি';
+            document.getElementById('home-meal-rate').innerText = window.formatMoney(finalMealRate);
+            document.getElementById('bazar-cat-total').innerText = window.formatMoney(totalBazar);
+            document.getElementById('bazar-cat-mudi').innerText = window.formatMoney(totalMudiBazar);
+            document.getElementById('bazar-cat-kacha').innerText = window.formatMoney(totalKachaBazar);
+            document.getElementById('calc-total-deposit').innerText = window.formatMoney(totalDeposit);
+            document.getElementById('calc-total-bazar').innerText = window.formatMoney(totalBazar);
+            document.getElementById('calc-cook-total-meals').innerText = (totalRegularMeals + totalGuestMeals + cookMeals) + ' টি';
+            document.getElementById('calc-total-guest-meals').innerText = totalGuestMeals + ' টি';
+            document.getElementById('calc-final-meal-rate').innerText = window.formatMoney(finalMealRate);
+            document.getElementById('calc-per-member-cook').innerText = window.formatMoney(perMemberCookExpense);
+        };
+
+        // "এক নজরে বিগত মাস" — আলাদা, স্বতন্ত্র ক্যালকুলেশন (মূল runMasterCalculation স্পর্শ করা হয়নি)
+        window.computePrevMonthSummary = function() {
+            var curDate = window.currentDate;
+            var prevDate = new Date(curDate.getFullYear(), curDate.getMonth() - 1, 1);
+            var pIdx = prevDate.getMonth();
+            var pYear = prevDate.getFullYear();
+
+            var prevDeposits = window.depositList.filter(d => d.month === pIdx && d.year === pYear);
+            var prevMeals = window.mealList.filter(m => m.month === pIdx && m.year === pYear);
+            var prevBazar = window.bazarList.filter(b => b.month === pIdx && b.year === pYear);
+
+            var prevTotalDeposit = prevDeposits.reduce((acc, item) => acc + item.amount, 0);
+            var prevTotalBazar = prevBazar.reduce((acc, item) => acc + item.amount, 0);
+
+            // ওই মাসের সেভ করা সেটিংস (থাকলে), না হলে ডিফল্ট
+            var user = auth.currentUser;
+            var guestLimit = 25, guestRate = 150, cookMeals = 0;
+            if (user) {
+                var savedKey = 'calc_settings_' + user.uid + '_' + pYear + '_' + pIdx;
+                var saved = localStorage.getItem(savedKey);
+                if (saved) {
+                    try {
+                        var settings = JSON.parse(saved);
+                        guestLimit = parseFloat(settings.guestLimit) || 25;
+                        guestRate = parseFloat(settings.guestRate) || 150;
+                        cookMeals = parseFloat(settings.cookMeals) || 0;
+                    } catch(e) {}
+                }
+            }
+
+            var prevMembersMap = {};
+            prevDeposits.forEach(d => {
+                if (!prevMembersMap[d.name]) prevMembersMap[d.name] = { meals: 0 };
+            });
+            prevMeals.forEach(m => {
+                if (!prevMembersMap[m.name]) prevMembersMap[m.name] = { meals: 0 };
+                prevMembersMap[m.name].meals += m.amount;
+            });
+
+            var prevRegularMeals = 0, prevGuestMeals = 0, prevGuestExpense = 0;
+            Object.values(prevMembersMap).forEach(m => {
+                if (m.meals <= guestLimit) {
+                    prevGuestMeals += m.meals;
+                    prevGuestExpense += (m.meals * guestRate);
+                } else {
+                    prevRegularMeals += m.meals;
+                }
+            });
+
+            var prevNetBazar = prevTotalBazar - prevGuestExpense;
+            var prevFinalMealRate = (prevRegularMeals + cookMeals) > 0 ? (prevNetBazar / (prevRegularMeals + cookMeals)) : 0;
+            var prevTotalMeals = prevRegularMeals + prevGuestMeals + cookMeals;
+
+            var headingEl = document.getElementById('prev-month-heading');
+            if (headingEl) headingEl.innerText = "এক নজরে বিগত মাস (" + bnMonths[pIdx] + " " + pYear + ")";
+            var elD = document.getElementById('prev-total-deposit');
+            var elB = document.getElementById('prev-total-bazar');
+            var elM = document.getElementById('prev-total-meals');
+            var elR = document.getElementById('prev-meal-rate');
+            if (elD) elD.innerText = window.formatMoney(prevTotalDeposit);
+            if (elB) elB.innerText = window.formatMoney(prevTotalBazar);
+            if (elM) elM.innerText = prevTotalMeals + ' টি';
+            if (elR) elR.innerText = window.formatMoney(prevFinalMealRate);
+        };
+
+        // মিল/জমা পেজের জন্য — চলতি মাসের আসল ডেটা + পার্সিস্টেন্ট রোস্টারের বাকি নাম (০ মূল্যে) মিলিয়ে একটা তালিকা
+        window.buildMemberDisplayList = function() {
+            var combined = {};
+            Object.values(window.cachedCalcResults.membersMap).forEach(m => {
+                combined[m.name] = m;
+            });
+            window.rosterList.forEach(r => {
+                if (!combined[r.name]) {
+                    combined[r.name] = { name: r.name, deposit: 0, meals: 0, isGuest: true, depositEntryId: null, depositRemarks: '', depositDate: '', mealEntryId: null, mealRemarks: '', mealDate: '' };
+                }
+            });
+            return Object.values(combined);
+        };
+
+        window.updateUI = function() {
+            var mIdx = window.currentDate.getMonth();
+            var yIdx = window.currentDate.getFullYear();
+            document.getElementById('month-display').innerText = bnMonths[mIdx] + " " + yIdx;
+
+            window.loadCalcSettingsIfNeeded();
+            window.runMasterCalculation();
+            window.computePrevMonthSummary();
+
+            if (window.currentActivePage === "page-deposit") {
+                var tbody = document.getElementById('deposit-table-body');
+                tbody.innerHTML = "";
+                var idx = 1;
+                window.buildMemberDisplayList().forEach(m => {
+                    var tr = document.createElement('tr');
+                    var deleteBtn = m.depositEntryId ? `<button onclick="deleteMemberEntry('deposit', '${m.name.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 ml-2"><i class="fa-solid fa-trash-can"></i></button>` : '';
+                    tr.innerHTML = `<td class="p-4 text-center">${idx++}</td><td class="p-4 font-semibold">${m.name}</td><td class="p-4 text-right font-bold text-blue-600">${window.formatMoney(m.deposit)}</td><td class="p-4 text-xs">${m.depositRemarks || '—'}</td><td class="p-4 text-center whitespace-nowrap"><button onclick="openEditEntryModal('deposit', '${m.name.replace(/'/g, "\\'")}')" class="text-blue-500 hover:text-blue-700"><i class="fa-solid fa-pen"></i></button>${deleteBtn}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } else if (window.currentActivePage === "page-expense") {
+                var tbody = document.getElementById('bazar-table-body');
+                tbody.innerHTML = "";
+                var thisMonthBazar = window.bazarList.filter(b => b.month === mIdx && b.year === yIdx);
+                thisMonthBazar.forEach(b => {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="p-4">${b.date}</td><td class="p-4">${b.category}</td><td class="p-4 text-right font-bold">${window.formatMoney(b.amount)}</td><td class="p-4 text-xs">${b.remarks || '—'}</td><td class="p-4 text-center whitespace-nowrap"><button onclick="openEditBazarModal('${b.id}')" class="text-blue-500 hover:text-blue-700"><i class="fa-solid fa-pen"></i></button><button onclick="deleteBazarItem('${b.id}')" class="text-red-500 hover:text-red-700 ml-2"><i class="fa-solid fa-trash-can"></i></button></td>`;
+                    tbody.appendChild(tr);
+                });
+            } else if (window.currentActivePage === "page-meal") {
+                var tbody = document.getElementById('meal-table-body');
+                tbody.innerHTML = "";
+                var idx = 1;
+                window.buildMemberDisplayList().forEach(m => {
+                    var tr = document.createElement('tr');
+                    var tag = m.isGuest ? ' <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">গেস্ট</span>' : '';
+                    var deleteBtn = `<button onclick="deleteMemberEntry('meal', '${m.name.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 ml-2"><i class="fa-solid fa-trash-can"></i></button>`;
+                    tr.innerHTML = `<td class="p-4 text-center">${idx++}</td><td class="p-4 font-semibold">${m.name}${tag}</td><td class="p-4 text-right font-bold text-purple-600">${m.meals} টি</td><td class="p-4 text-xs">${m.mealRemarks || '—'}</td><td class="p-4 text-center whitespace-nowrap"><button onclick="openEditEntryModal('meal', '${m.name.replace(/'/g, "\\'")}')" class="text-blue-500 hover:text-blue-700"><i class="fa-solid fa-pen"></i></button>${deleteBtn}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } else if (window.currentActivePage === "page-final-sheet") {
+                var tbody = document.getElementById('final-sheet-table-body');
+                tbody.innerHTML = "";
+                var idx = 1;
+                var gRateGlobal = parseFloat(document.getElementById('input-guest-rate').value) || 150;
+                Object.values(window.cachedCalcResults.membersMap).forEach(m => {
+                    var mealCost = 0, cookCost = 0, totalCost = 0, mealRateForMember = 0;
+                    if (m.isGuest) {
+                        mealRateForMember = gRateGlobal;
+                        mealCost = m.meals * gRateGlobal;
+                        totalCost = mealCost;
+                    } else {
+                        mealRateForMember = window.cachedCalcResults.finalMealRate;
+                        mealCost = m.meals * mealRateForMember;
+                        cookCost = window.cachedCalcResults.perMemberCook;
+                        totalCost = mealCost + cookCost;
+                    }
+                    // সর্বমোট খরচ — দশমিক ছাড়া, বাড়িয়ে পূর্ণ সংখ্যা (ceil)
+                    var totalCostRounded = Math.ceil(totalCost);
+                    var balance = m.deposit - totalCostRounded;
+
+                    var displayMealRate = window.formatMoney(mealRateForMember, false);
+                    var displayCookCost = window.formatMoney(cookCost, false);
+                    var displayTotalCost = totalCostRounded.toFixed(0);
+                    var displayReceivable = balance < 0 ? Math.abs(balance).toFixed(0) : '0';
+                    var displayPayable = balance > 0 ? balance.toFixed(0) : '0';
+
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="p-3 text-center">${idx++}</td>
+                                    <td class="p-3 font-semibold">${m.name}${m.isGuest ? ' (গেস্ট)' : ''}</td>
+                                    <td class="p-3 text-right">${window.formatMoney(m.deposit, false)}</td>
+                                    <td class="p-3 text-right">${m.meals}</td>
+                                    <td class="p-3 text-right">${displayMealRate}</td>
+                                    <td class="p-3 text-right">${displayCookCost}</td>
+                                    <td class="p-3 text-right font-bold">${displayTotalCost}</td>
+                                    <td class="p-3 text-right text-rose-600 font-bold">${displayReceivable}</td>
+                                    <td class="p-3 text-right text-emerald-600 font-bold">${displayPayable}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                // উপরের প্রিন্ট হেডার — মেসের নাম + মাস-সাল
+                var messNameForPrint = document.getElementById('mess-name-display').innerText;
+                document.getElementById('print-mess-title').innerText = messNameForPrint;
+                document.getElementById('print-month-title').innerText = "মাসঃ " + bnMonths[mIdx] + " " + yIdx + " খ্রি.";
+
+                // টেবিলের নিচে প্লেইন টেক্সট সামারি
+                var cr = window.cachedCalcResults;
+                var summaryHtml = `
+                    <p><strong>মোট জমা:</strong> ${window.formatMoney(cr.totalDeposit)}</p>
+                    <p><strong>মোট বাজার খরচ:</strong> ${window.formatMoney(cr.totalBazar)}</p>
+                    <p><strong>মোট মিল (বাবুর্চিসহ):</strong> ${cr.cookTotalMeals} টি</p>
+                    <p><strong>গেস্ট মিল সংখ্যা:</strong> ${cr.totalGuestMeals} টি</p>
+                    <p><strong>ফাইনাল মিল রেট:</strong> ${window.formatMoney(cr.finalMealRate)}</p>
+                    <p><strong>জন প্রতি বাবুর্চি খরচ:</strong> ${window.formatMoney(cr.perMemberCook)}</p>
+                `;
+                document.getElementById('final-sheet-summary').innerHTML = summaryHtml;
+            }
+        };
+
+        // Firebase Auth handlers
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value;
+            const errBox = document.getElementById('login-error');
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
+                errBox.classList.remove('hidden');
+                errBox.textContent = "লগইন ব্যর্থ! সঠিক ইমেইল ও পাসওয়ার্ড প্রদান করুন।";
+            }
+        });
+
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const mName = document.getElementById('reg-mess-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-password').value;
+            const errBox = document.getElementById('register-error');
+            if(!mName || !email || pass.length < 6) {
+                errBox.classList.remove('hidden');
+                errBox.textContent = "সবগুলো ফিল্ড সঠিকভাবে পূরণ করুন (পাসওয়ার্ড কমপক্ষে ৬ সংখ্যা)।";
+                return;
+            }
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                localStorage.setItem('mess_name_' + res.user.uid, mName);
+                alert("অ্যাকাউন্ট তৈরি সফল হয়েছে!");
+                window.location.reload();
+            } catch (err) {
+                errBox.classList.remove('hidden');
+                errBox.textContent = err.message;
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth).then(() => window.location.reload()));
+        document.getElementById('go-to-reg-btn').addEventListener('click', () => { document.getElementById('auth-login-page').classList.add('hidden'); document.getElementById('auth-register-page').classList.remove('hidden'); });
+        document.getElementById('go-to-login-btn').addEventListener('click', () => { document.getElementById('auth-register-page').classList.add('hidden'); document.getElementById('auth-login-page').classList.remove('hidden'); });
+
+        // 🔄 ফোর্স রিফ্রেশ — সরাসরি Firebase থেকে টেনে আনে, লিসেনারের উপর নির্ভর করে না
+        window.forceRefreshAll = async function() {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                const depSnap = await get(ref(db, "userdata/" + user.uid + "/deposits"));
+                window.depositList = [];
+                depSnap.forEach(child => { window.depositList.push({ id: child.key, ...child.val() }); });
+
+                const mealSnap = await get(ref(db, "userdata/" + user.uid + "/meals"));
+                window.mealList = [];
+                mealSnap.forEach(child => { window.mealList.push({ id: child.key, ...child.val() }); });
+
+                const bazarSnap = await get(ref(db, "userdata/" + user.uid + "/bazar"));
+                window.bazarList = [];
+                bazarSnap.forEach(child => { window.bazarList.push({ id: child.key, ...child.val() }); });
+
+                const rosterSnap = await get(ref(db, "userdata/" + user.uid + "/members"));
+                window.rosterList = [];
+                rosterSnap.forEach(child => { window.rosterList.push({ id: child.key, ...child.val() }); });
+
+                // ব্যাকফিল: mealList-এ যেসব নাম আছে কিন্তু রোস্টারে নেই সেগুলো যুক্ত করা
+                // (পুরনো এন্ট্রি যখন addToRosterIfNew() ছিল না তখন যোগ হয়েছিল)
+                const rosterNames = new Set(window.rosterList.map(r => r.name));
+                const uniqueMealNames = [...new Set(window.mealList.map(m => m.name))];
+                for (const mName of uniqueMealNames) {
+                    if (!rosterNames.has(mName)) {
+                        const newRef = await push(ref(db, "userdata/" + user.uid + "/members"), { name: mName, timestamp: new Date().getTime() });
+                        window.rosterList.push({ id: newRef.key, name: mName, timestamp: new Date().getTime() });
+                        rosterNames.add(mName);
+                    }
+                }
+
+                window.updateUI();
+            } catch (err) {
+                console.error("রিফ্রেশ ব্যর্থ:", err);
+            }
+        };
+
+        // Realtime Database — শুধু get()-ভিত্তিক ফোর্স রিফ্রেশের উপর নির্ভর করছি
+        // (continuous onValue লিসেনারে একটা পুরোনো বাগ ছিল যা মাত্র ১টা এন্ট্রি ধরে রাখত)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                const messName = localStorage.getItem('mess_name_' + user.uid) || "এখানে মেসের নাম দিন";
+                document.getElementById('mess-name-display').innerText = messName;
+
+                // প্রাথমিক লোড
+                window.forceRefreshAll();
+
+                // প্রতি ১০ সেকেন্ডে অটো-রিফ্রেশ (অন্য ডিভাইস থেকে এন্ট্রি দিলে কাছাকাছি রিয়েলটাইম আপডেট দেখানোর জন্য)
+                if (window._autoRefreshInterval) clearInterval(window._autoRefreshInterval);
+                window._autoRefreshInterval = setInterval(() => {
+                    window.forceRefreshAll();
+                }, 10000);
+
+            } else {
+                document.getElementById('auth-overlay').classList.remove('hidden');
+                if (window._autoRefreshInterval) clearInterval(window._autoRefreshInterval);
+            }
+        });
+
+        // Add/Submit triggers linked to Realtime Database
+        window.openGlobalModal = function(mode) {
+            document.getElementById('form-mode').value = mode;
+            document.getElementById('form-edit-id').value = "";
+            document.getElementById('form-edit-month').value = "";
+            document.getElementById('form-edit-year').value = "";
+            document.getElementById('form-original-name').value = "";
+            document.getElementById('form-name').value = "";
+            document.getElementById('form-name').disabled = false;
+            document.getElementById('form-amount').value = "";
+            document.getElementById('form-remarks').value = "";
+            document.getElementById('form-date').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('form-remarks-wrapper').classList.remove('hidden');
+            
+            if(mode === 'deposit') {
+                document.getElementById('modal-title').innerText = "নতুন মেস জমা এন্ট্রি";
+                document.getElementById('form-value-label').innerText = "জমার পরিমাণ (টাকা)";
+            } else {
+                document.getElementById('modal-title').innerText = "নতুন মিল এন্ট্রি";
+                document.getElementById('form-value-label').innerText = "মোট মিলের সংখ্যা";
+            }
+            document.getElementById('global-modal').classList.remove('hidden');
+        };
+
+        // সদস্যের নামের পাশের ✏️ এডিট আইকনে ক্লিক হলে — বিদ্যমান এন্ট্রি এডিট, বা নতুন (যদি না থাকে)
+        window.openEditEntryModal = function(mode, name) {
+            const m = window.buildMemberDisplayList().find(x => x.name === name);
+            if (!m) return;
+            const entryId = (mode === 'deposit') ? m.depositEntryId : m.mealEntryId;
+            const amount = (mode === 'deposit') ? m.deposit : m.meals;
+            const remarks = (mode === 'deposit') ? m.depositRemarks : m.mealRemarks;
+            const dateVal = (mode === 'deposit') ? m.depositDate : m.mealDate;
+
+            document.getElementById('form-mode').value = mode;
+            document.getElementById('form-name').value = name;
+            document.getElementById('form-name').disabled = false; // নাম এডিট করা যাবে (টাইপো ঠিক করার জন্য)
+            document.getElementById('form-original-name').value = name;
+            document.getElementById('form-remarks').value = remarks || "";
+            document.getElementById('form-remarks-wrapper').classList.remove('hidden');
+            document.getElementById('form-date').value = dateVal || new Date().toISOString().substring(0, 10);
+
+            if (entryId) {
+                // বিদ্যমান এন্ট্রি এডিট
+                document.getElementById('form-edit-id').value = entryId;
+                document.getElementById('form-edit-month').value = window.currentDate.getMonth();
+                document.getElementById('form-edit-year').value = window.currentDate.getFullYear();
+                document.getElementById('form-amount').value = amount;
+                document.getElementById('modal-title').innerText = (mode === 'deposit') ? "জমা এডিট করুন" : "মিল এডিট করুন";
+            } else {
+                // এন্ট্রি নেই — নতুন তৈরি হবে এই নামের জন্য
+                document.getElementById('form-edit-id').value = "";
+                document.getElementById('form-amount').value = "";
+                document.getElementById('modal-title').innerText = (mode === 'deposit') ? "নতুন জমা যুক্ত করুন" : "নতুন মিল যুক্ত করুন";
+            }
+            document.getElementById('form-value-label').innerText = (mode === 'deposit') ? "জমার পরিমাণ (টাকা)" : "মোট মিলের সংখ্যা";
+            document.getElementById('global-modal').classList.remove('hidden');
+        };
+
+        window.closeGlobalModal = function() {
+            document.getElementById('global-modal').classList.add('hidden');
+            document.getElementById('form-name').disabled = false;
+        };
+        window.openBazarModal = function() {
+            document.getElementById('bazar-edit-id').value = "";
+            document.getElementById('bazar-modal-title').innerText = "নতুন বাজার খরচ এন্ট্রি";
+            document.getElementById('bazar-form-date').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('bazar-category').value = "মুদিবাজার";
+            document.getElementById('bazar-amount').value = "";
+            document.getElementById('bazar-remarks').value = "";
+            document.getElementById('bazar-modal').classList.remove('hidden');
+        };
+
+        window.openEditBazarModal = function(id) {
+            const b = window.bazarList.find(x => x.id === id);
+            if (!b) return;
+            document.getElementById('bazar-edit-id').value = id;
+            document.getElementById('bazar-modal-title').innerText = "বাজার খরচ এডিট করুন";
+            document.getElementById('bazar-form-date').value = b.date;
+            document.getElementById('bazar-category').value = b.category;
+            document.getElementById('bazar-amount').value = b.amount;
+            document.getElementById('bazar-remarks').value = b.remarks || "";
+            document.getElementById('bazar-modal').classList.remove('hidden');
+        };
+        window.closeBazarModal = function() { document.getElementById('bazar-modal').classList.add('hidden'); };
+
+        // Save data handlers to Realtime Database
+        document.getElementById('global-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const mode = document.getElementById('form-mode').value;
+            const editId = document.getElementById('form-edit-id').value;
+            const originalName = document.getElementById('form-original-name').value;
+            const newName = document.getElementById('form-name').value.trim();
+            const dateStr = document.getElementById('form-date').value;
+            const dObj = new Date(dateStr);
+            const targetPath = "userdata/" + user.uid + "/" + ((mode === 'deposit') ? "deposits" : "meals");
+
+            if (editId) {
+                // বিদ্যমান এন্ট্রি এডিট
+                const updates = {
+                    name: newName,
+                    amount: parseFloat(document.getElementById('form-amount').value) || 0,
+                    remarks: document.getElementById('form-remarks').value.trim(),
+                    date: dateStr,
+                    month: dObj.getMonth(),
+                    year: dObj.getFullYear(),
+                    timestamp: new Date().getTime()
+                };
+                await update(ref(db, targetPath + "/" + editId), updates);
+                // মিল পেজে নাম বদলালে, রোস্টারেও নামটা সিঙ্ক করা (যাতে ভবিষ্যৎ মাসে নতুন নামই দেখায়)
+                if (mode === 'meal' && originalName && newName !== originalName) {
+                    await window.renameRosterMember(originalName, newName);
+                }
+            } else {
+                const data = {
+                    name: newName,
+                    amount: parseFloat(document.getElementById('form-amount').value) || 0,
+                    remarks: document.getElementById('form-remarks').value.trim(),
+                    date: dateStr,
+                    month: dObj.getMonth(),
+                    year: dObj.getFullYear(),
+                    userId: user.uid,
+                    timestamp: new Date().getTime()
+                };
+                await push(ref(db, targetPath), data);
+                // মিল পেজ থেকে সম্পূর্ণ নতুন নাম যুক্ত হলে, রোস্টারে সংরক্ষণ (ভবিষ্যৎ মাসে অটো-দেখানোর জন্য)
+                if (mode === 'meal') {
+                    await window.addToRosterIfNew(newName);
+                }
+            }
+            await window.forceRefreshAll();
+            window.closeGlobalModal();
+        });
+
+        document.getElementById('bazar-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const editId = document.getElementById('bazar-edit-id').value;
+            const dateStr = document.getElementById('bazar-form-date').value;
+            const dObj = new Date(dateStr);
+
+            if (editId) {
+                const updates = {
+                    date: dateStr,
+                    category: document.getElementById('bazar-category').value,
+                    amount: parseFloat(document.getElementById('bazar-amount').value) || 0,
+                    remarks: document.getElementById('bazar-remarks').value.trim(),
+                    month: dObj.getMonth(),
+                    year: dObj.getFullYear(),
+                    timestamp: new Date().getTime()
+                };
+                await update(ref(db, "userdata/" + user.uid + "/bazar/" + editId), updates);
+            } else {
+                const data = {
+                    date: dateStr,
+                    category: document.getElementById('bazar-category').value,
+                    amount: parseFloat(document.getElementById('bazar-amount').value) || 0,
+                    remarks: document.getElementById('bazar-remarks').value.trim(),
+                    month: dObj.getMonth(),
+                    year: dObj.getFullYear(),
+                    userId: user.uid,
+                    timestamp: new Date().getTime()
+                };
+                await push(ref(db, "userdata/" + user.uid + "/bazar"), data);
+            }
+            await window.forceRefreshAll();
+            window.closeBazarModal();
+        });
+
+        window.deleteBazarItem = async function(id) {
+            if(confirm("আপনি কি নিশ্চিতভাবে এই খরচটি ডিলিট করতে চান?")) {
+                await remove(ref(db, "userdata/" + auth.currentUser.uid + "/bazar/" + id));
+                await window.forceRefreshAll();
+            }
+        };
+
+        window.deleteMemberEntry = async function(mode, name) {
+            const user = auth.currentUser;
+            if (!user) return;
+            const mIdx = window.currentDate.getMonth();
+            const yIdx = window.currentDate.getFullYear();
+            const collection = (mode === 'deposit') ? "deposits" : "meals";
+            const sourceList = (mode === 'deposit') ? window.depositList : window.mealList;
+            const entriesThisMonth = sourceList.filter(e => e.name === name && e.month === mIdx && e.year === yIdx);
+            const label = (mode === 'deposit') ? 'জমা' : 'মিল';
+
+            if (entriesThisMonth.length > 0) {
+                // এই মাসের নামের সব এন্ট্রি একসাথে ডিলিট + রোস্টার থেকেও বাদ (পুরো রো উধাও হবে)
+                if (!confirm(name + " এর এই মাসের সব " + label + " এন্ট্রি ডিলিট করতে চান? (ভবিষ্যতের মিল পেইজ থেকেও বাদ যাবে)")) return;
+                for (const e of entriesThisMonth) {
+                    await remove(ref(db, "userdata/" + user.uid + "/" + collection + "/" + e.id));
+                }
+                if (mode === 'meal') {
+                    await window.removeFromRoster(name);
+                }
+                await window.forceRefreshAll();
+            } else if (mode === 'meal') {
+                // মিল পেজে এই নামের কোনো এন্ট্রিই নেই এই মাসে (শুধু রোস্টার থেকে দেখানো শূন্য-সারি) — ডিলিট মানে রোস্টার থেকে স্থায়ীভাবে বাদ
+                if (!confirm(name + " কে ভবিষ্যতের মিল পেইজ থেকেও বাদ দিতে চান? (পুরোনো মাসের হিসাবে কোনো প্রভাব পড়বে না)")) return;
+                await window.removeFromRoster(name);
+                await window.forceRefreshAll();
+            }
+        };
+
+        // রোস্টার (পার্সিস্টেন্ট মেম্বার তালিকা) ম্যানেজমেন্ট ফাংশনসমূহ
+        window.addToRosterIfNew = async function(name) {
+            const user = auth.currentUser;
+            if (!user || !name) return;
+            const exists = window.rosterList.some(r => r.name === name);
+            if (!exists) {
+                await push(ref(db, "userdata/" + user.uid + "/members"), { name: name, timestamp: new Date().getTime() });
+            }
+        };
+
+        window.renameRosterMember = async function(oldName, newName) {
+            const user = auth.currentUser;
+            if (!user) return;
+            const entry = window.rosterList.find(r => r.name === oldName);
+            if (entry) {
+                await update(ref(db, "userdata/" + user.uid + "/members/" + entry.id), { name: newName });
+            } else {
+                // রোস্টারে আগে ছিল না, কিন্তু এখন নাম বদলানো হলো — নতুন নামটাই রোস্টারে যুক্ত করা হচ্ছে
+                await window.addToRosterIfNew(newName);
+            }
+        };
+
+        window.removeFromRoster = async function(name) {
+            const user = auth.currentUser;
+            if (!user) return;
+            const entry = window.rosterList.find(r => r.name === name);
+            if (entry) {
+                await remove(ref(db, "userdata/" + user.uid + "/members/" + entry.id));
+            }
+        };
+
+        // Export Excel Spreadsheet with explicit criteria
+        window.exportToExcel = function() {
+            var dataRows = [];
+            var idx = 1;
+            var gRateGlobal = parseFloat(document.getElementById('input-guest-rate').value) || 150;
+            Object.values(window.cachedCalcResults.membersMap).forEach(m => {
+                var mealCost = 0, cookCost = 0, totalCost = 0, mealRateForMember = 0;
+                if (m.isGuest) {
+                    mealRateForMember = gRateGlobal;
+                    mealCost = m.meals * gRateGlobal; totalCost = mealCost;
+                } else {
+                    mealRateForMember = window.cachedCalcResults.finalMealRate;
+                    mealCost = m.meals * mealRateForMember;
+                    cookCost = window.cachedCalcResults.perMemberCook;
+                    totalCost = mealCost + cookCost;
+                }
+                var totalCostRounded = Math.ceil(totalCost);
+                var balance = m.deposit - totalCostRounded;
+                
+                dataRows.push({
+                    "ক্রমিক নং": idx++,
+                    "সদস্যের নাম": m.name + (m.isGuest ? ' (গেস্ট)' : ''),
+                    "মোট জমা টাকা": parseFloat(window.formatMoney(m.deposit, false)),
+                    "মোট মিল": m.meals,
+                    "মিল রেট": parseFloat(window.formatMoney(mealRateForMember, false)),
+                    "বাবুর্চি খরচ (টাকা)": parseFloat(window.formatMoney(cookCost, false)),
+                    "সর্বমোট খরচ": totalCostRounded,
+                    "মেস পাবে (বকেয়া)": balance < 0 ? Math.abs(balance) : 0,
+                    "মেস দিবে (ফেরত)": balance > 0 ? balance : 0
+                });
+            });
+
+            var ws = XLSX.utils.json_to_sheet(dataRows);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "হিসাব বিবরণী");
+            var mName = document.getElementById('mess-name-display').innerText.replace(/\s+/g, '_');
+            XLSX.writeFile(wb, mName + "_Final_Sheet.xlsx");
+        };
+
+        // Toggle global sidebar UI
+        window.toggleSidebar = function(open) {
+            const menu = document.getElementById('sidebar-menu');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (open) {
+                menu.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                menu.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        };
+
+        // মেসের নাম এডিট করা (localStorage-এ সেভ থাকে)
+        window.editMessName = function() {
+            const user = auth.currentUser;
+            if (!user) return;
+            const current = document.getElementById('mess-name-display').innerText;
+            const newName = prompt("আপনার মেসের নাম লিখুন:", current === "এখানে মেসের নাম দিন" ? "" : current);
+            if (newName !== null && newName.trim() !== "") {
+                localStorage.setItem('mess_name_' + user.uid, newName.trim());
+                document.getElementById('mess-name-display').innerText = newName.trim();
+                window.updateUI();
+            }
+        };
+
+        // 🔧 DEBUG HELPER — কনসোলে চালাও: debugCheck()
+        window.debugCheck = function() {
+            const user = auth.currentUser;
+            if (!user) { console.log("লগইন করা নেই!"); return; }
+            console.log("=== UID ===", user.uid);
+            onValue(ref(db, "userdata/" + user.uid + "/meals"), (snap) => {
+                console.log("LIVE meals count from Firebase:", snap.size);
+                console.log("LIVE meals data:", JSON.stringify(snap.val()));
+            }, { onlyOnce: true });
+            onValue(ref(db, "userdata/" + user.uid + "/deposits"), (snap) => {
+                console.log("LIVE deposits count from Firebase:", snap.size);
+            }, { onlyOnce: true });
+            console.log("App-side window.mealList length:", window.mealList.length);
+            console.log("App-side window.depositList length:", window.depositList.length);
+        };
+
+    </script>
+</body>
+</html>
