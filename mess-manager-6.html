@@ -41,71 +41,6 @@
 </head>
 <body id="app-body" class="text-gray-800 antialiased pb-28">
 
-
-    <!-- Forgot Password Modal -->
-    <div id="forgot-password-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="p-4 text-white font-bold flex justify-between items-center" style="background: linear-gradient(135deg, #1e3a5f, #2d6a9f);">
-                <span><i class="fa-solid fa-key mr-2"></i>পাসওয়ার্ড রিকভারি</span>
-                <button onclick="document.getElementById('forgot-password-modal').classList.add('hidden')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <p class="text-slate-500 text-sm">আপনার রেজিস্টার্ড ইমেইলে পাসওয়ার্ড রিসেট লিংক পাঠানো হবে।</p>
-                <div id="forgot-password-msg" class="hidden p-3 rounded-xl text-sm font-medium"></div>
-                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                    <span class="pl-3 text-slate-400"><i class="fa-regular fa-envelope text-sm"></i></span>
-                    <input type="email" id="forgot-email" placeholder="আপনার ইমেইল" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
-                </div>
-                <button id="forgot-send-btn" type="button" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background: linear-gradient(135deg, #e85d04, #f48c06);">রিসেট লিংক পাঠান</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Change Password Modal -->
-    <div id="change-password-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="p-4 text-white font-bold flex justify-between items-center" style="background: linear-gradient(135deg, #1e3a5f, #2d6a9f);">
-                <span><i class="fa-solid fa-lock mr-2"></i>পাসওয়ার্ড পরিবর্তন</span>
-                <button onclick="document.getElementById('change-password-modal').classList.add('hidden')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 space-y-3">
-                <div id="change-password-msg" class="hidden p-3 rounded-xl text-sm font-medium"></div>
-                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                    <span class="pl-3 text-slate-400"><i class="fa-solid fa-lock text-sm"></i></span>
-                    <input type="password" id="current-password" placeholder="বর্তমান পাসওয়ার্ড" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
-                </div>
-                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                    <span class="pl-3 text-slate-400"><i class="fa-solid fa-lock text-sm"></i></span>
-                    <input type="password" id="new-password" placeholder="নতুন পাসওয়ার্ড (কমপক্ষে ৬ সংখ্যা)" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
-                </div>
-                <button id="change-password-btn" type="button" class="w-full py-3 rounded-xl font-bold text-white text-sm" style="background: linear-gradient(135deg, #e85d04, #f48c06);">পাসওয়ার্ড পরিবর্তন করুন</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Account Modal -->
-    <div id="delete-account-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="p-4 text-white font-bold flex justify-between items-center bg-red-600">
-                <span><i class="fa-solid fa-triangle-exclamation mr-2"></i>অ্যাকাউন্ট ডিলিট</span>
-                <button onclick="document.getElementById('delete-account-modal').classList.add('hidden')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 space-y-3">
-                <p class="text-slate-700 text-sm font-medium">⚠️ এই কাজটি অপরিবর্তনীয়! আপনার সমস্ত ডেটা (জমা, বাজার, মিল, সদস্য তালিকা) স্থায়ীভাবে মুছে যাবে।</p>
-                <div id="delete-account-msg" class="hidden p-3 rounded-xl text-sm font-medium"></div>
-                <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                    <span class="pl-3 text-slate-400"><i class="fa-solid fa-lock text-sm"></i></span>
-                    <input type="password" id="delete-confirm-password" placeholder="বর্তমান পাসওয়ার্ড" class="flex-1 p-3 bg-transparent text-sm outline-none text-slate-700 placeholder-slate-400" />
-                </div>
-                <div class="flex items-center border border-red-200 rounded-xl overflow-hidden bg-red-50">
-                    <span class="pl-3 text-red-400"><i class="fa-solid fa-keyboard text-sm"></i></span>
-                    <input type="text" id="delete-confirm-text" placeholder="নিশ্চিত করতে DELETE লিখুন" class="flex-1 p-3 bg-transparent text-sm outline-none text-red-700 placeholder-red-300" />
-                </div>
-                <button id="delete-account-btn" type="button" class="w-full py-3 rounded-xl font-bold text-white text-sm bg-red-600 hover:bg-red-700">স্থায়ীভাবে ডিলিট করুন</button>
-            </div>
-        </div>
-    </div>
-
     <div id="auth-overlay" class="fixed inset-0 z-50 flex flex-col" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 50%, #1e3a5f 100%);">
         <div id="auth-login-page" class="flex flex-col flex-1 items-center justify-center p-6">
             <div class="mb-8 text-center">
@@ -132,9 +67,6 @@
                         <button id="login-btn" type="button" class="w-full py-3 rounded-xl font-bold text-white text-sm transition-all active:scale-95 shadow-md" style="background: linear-gradient(135deg, #e85d04, #f48c06);">
                             LOG IN
                         </button>
-                    </div>
-                    <div class="text-right mt-2">
-                        <button type="button" id="forgot-password-btn" class="text-xs text-blue-500 hover:text-blue-700 font-medium">Forgot Password?</button>
                     </div>
                     <p class="text-center text-slate-500 text-xs mt-4">Don't have an account?</p>
                     <button type="button" id="go-to-reg-btn" class="w-full mt-2 py-2.5 rounded-xl font-bold text-white text-sm transition-all active:scale-95" style="background: linear-gradient(135deg, #2d9d57, #27ae60);">
@@ -193,9 +125,10 @@
                     <button onclick="editMessName()" type="button" class="text-blue-200 hover:text-white"><i class="fa-solid fa-pen text-[10px]"></i></button>
                 </div>
             </div>
-            <button onclick="forceRefreshAll()" type="button" class="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all active:scale-95 text-lg" title="রিফ্রেশ">
+            <button onclick="forceRefreshAll()" type="button" class="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-all active:scale-95 text-lg mr-1" title="রিফ্রেশ">
                 <i class="fa-solid fa-rotate"></i>
             </button>
+            <button id="logout-btn" class="px-3 py-1.5 bg-red-600/80 hover:bg-red-700 rounded-xl text-xs font-bold transition-all">লগ আউট</button>
         </div>
     </header>
 
@@ -230,18 +163,6 @@
                     <i class="fa-solid fa-table text-emerald-400"></i> ফাইনাল হিসাব শিট
                 </button>
             </nav>
-        </div>
-        <div class="border-t border-slate-700 pt-4 space-y-1">
-            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest px-4 mb-2">অ্যাকাউন্ট</p>
-            <button onclick="openChangePasswordModal()" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
-                <i class="fa-solid fa-key text-yellow-400"></i> পাসওয়ার্ড পরিবর্তন
-            </button>
-            <button id="logout-btn" class="w-full text-left px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
-                <i class="fa-solid fa-right-from-bracket text-slate-400"></i> লগ আউট
-            </button>
-            <button onclick="openDeleteAccountModal()" class="w-full text-left px-4 py-3 hover:bg-red-900/40 text-red-400 hover:text-red-300 rounded-xl transition-all flex items-center gap-3 font-medium text-sm">
-                <i class="fa-solid fa-trash"></i> অ্যাকাউন্ট ডিলিট
-            </button>
         </div>
     </div>
 
@@ -513,7 +434,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getDatabase, ref, push, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         // ⚠️ এখানে databaseURL টা তোমার Realtime Database কনসোল থেকে কপি করে বসাও
         // Firebase Console → Realtime Database পেজের উপরে এই URL টা দেখা যাবে
@@ -921,100 +842,6 @@
         document.getElementById('logout-btn').addEventListener('click', () => signOut(auth).then(() => window.location.reload()));
         document.getElementById('go-to-reg-btn').addEventListener('click', () => { document.getElementById('auth-login-page').classList.add('hidden'); document.getElementById('auth-register-page').classList.remove('hidden'); });
         document.getElementById('go-to-login-btn').addEventListener('click', () => { document.getElementById('auth-register-page').classList.add('hidden'); document.getElementById('auth-login-page').classList.remove('hidden'); });
-
-        // Forgot Password
-        document.getElementById('forgot-password-btn').addEventListener('click', () => {
-            document.getElementById('forgot-password-modal').classList.remove('hidden');
-            document.getElementById('forgot-email').value = document.getElementById('login-email').value || '';
-            document.getElementById('forgot-password-msg').classList.add('hidden');
-        });
-        document.getElementById('forgot-send-btn').addEventListener('click', async () => {
-            const email = document.getElementById('forgot-email').value.trim();
-            const msgBox = document.getElementById('forgot-password-msg');
-            if (!email) { msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600'; msgBox.textContent = 'ইমেইল দিন।'; msgBox.classList.remove('hidden'); return; }
-            try {
-                await sendPasswordResetEmail(auth, email);
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-green-50 text-green-700';
-                msgBox.textContent = 'রিসেট লিংক পাঠানো হয়েছে! ইমেইল চেক করুন।';
-                msgBox.classList.remove('hidden');
-            } catch (err) {
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
-                msgBox.textContent = 'ব্যর্থ! সঠিক ইমেইল দিন।';
-                msgBox.classList.remove('hidden');
-            }
-        });
-
-        // Change Password
-        window.openChangePasswordModal = function() {
-            toggleSidebar(false);
-            document.getElementById('current-password').value = '';
-            document.getElementById('new-password').value = '';
-            document.getElementById('change-password-msg').classList.add('hidden');
-            document.getElementById('change-password-modal').classList.remove('hidden');
-        };
-        document.getElementById('change-password-btn').addEventListener('click', async () => {
-            const user = auth.currentUser;
-            const currentPass = document.getElementById('current-password').value;
-            const newPass = document.getElementById('new-password').value;
-            const msgBox = document.getElementById('change-password-msg');
-            if (!currentPass || newPass.length < 6) {
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
-                msgBox.textContent = 'বর্তমান পাসওয়ার্ড ও নতুন পাসওয়ার্ড (কমপক্ষে ৬ সংখ্যা) দিন।';
-                msgBox.classList.remove('hidden'); return;
-            }
-            try {
-                const credential = EmailAuthProvider.credential(user.email, currentPass);
-                await reauthenticateWithCredential(user, credential);
-                await updatePassword(user, newPass);
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-green-50 text-green-700';
-                msgBox.textContent = 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে!';
-                msgBox.classList.remove('hidden');
-                document.getElementById('current-password').value = '';
-                document.getElementById('new-password').value = '';
-            } catch (err) {
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
-                msgBox.textContent = 'ব্যর্থ! বর্তমান পাসওয়ার্ড সঠিক কিনা যাচাই করুন।';
-                msgBox.classList.remove('hidden');
-            }
-        });
-
-        // Delete Account
-        window.openDeleteAccountModal = function() {
-            toggleSidebar(false);
-            document.getElementById('delete-confirm-password').value = '';
-            document.getElementById('delete-confirm-text').value = '';
-            document.getElementById('delete-account-msg').classList.add('hidden');
-            document.getElementById('delete-account-modal').classList.remove('hidden');
-        };
-        document.getElementById('delete-account-btn').addEventListener('click', async () => {
-            const user = auth.currentUser;
-            const pass = document.getElementById('delete-confirm-password').value;
-            const confirmText = document.getElementById('delete-confirm-text').value.trim();
-            const msgBox = document.getElementById('delete-account-msg');
-            if (confirmText !== 'DELETE') {
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
-                msgBox.textContent = 'নিশ্চিত করতে DELETE লিখুন (বড় হাতে)।';
-                msgBox.classList.remove('hidden'); return;
-            }
-            if (!pass) {
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
-                msgBox.textContent = 'পাসওয়ার্ড দিন।';
-                msgBox.classList.remove('hidden'); return;
-            }
-            try {
-                const credential = EmailAuthProvider.credential(user.email, pass);
-                await reauthenticateWithCredential(user, credential);
-                // Firebase Realtime DB থেকে সব ডেটা মুছে দাও
-                await remove(ref(db, 'userdata/' + user.uid));
-                // Firebase Auth থেকে অ্যাকাউন্ট ডিলিট
-                await deleteUser(user);
-                window.location.reload();
-            } catch (err) {
-                msgBox.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
-                msgBox.textContent = 'ব্যর্থ! পাসওয়ার্ড সঠিক কিনা যাচাই করুন।';
-                msgBox.classList.remove('hidden');
-            }
-        });
 
         // 🔄 ফোর্স রিফ্রেশ — সরাসরি Firebase থেকে টেনে আনে, লিসেনারের উপর নির্ভর করে না
         window.forceRefreshAll = async function() {
